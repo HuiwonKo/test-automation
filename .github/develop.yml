@@ -1,0 +1,31 @@
+name: Deploy DEV
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.LUNAR_AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.LUNAR_AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: ap-northeast-2
+      - name: Invoke Lambda
+        id: integration
+        uses: gagoar/invoke-aws-lambda@master
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          FunctionName: heewon-test
+      - name: Store response payload to file
+        run: echo '${{ fromJSON(steps.integration.outputs.response).Payload }}' > invocation-response.json
+      # - name: Run integration test
+      #   run: |
+      #     chmod +x ./entrypoint.sh
+      #     ./entrypoint.sh
